@@ -21,18 +21,29 @@ def save_comment(comment_element, page_url, page_number):
 
 def find_comments_in_page(comments, page_url):
     page_number = 1
-        
-    while True:
+    
+    on_last_page = False
+    while not on_last_page:
         page = requests.get(page_url + "/page/" + str(page_number))
         soup = BeautifulSoup(page.content, "html.parser")
         
         print(page_url + "/page/" + str(page_number))
-        actual_page_number = int(soup.find('span', class_='current').text)
         
-        if page_number > actual_page_number:
-            break
+        current_page_element = soup.find('span', class_='current')
+        
+        # This page doesn't have a "next" page
+        if not current_page_element:
+            on_last_page = True
+        else:
+            # All comments already checked
+            if page_number > int(current_page_element.text):
+                break
 
         comments_container = soup.find('div', class_='table tablecomments')
+        
+        # Page has no comment section
+        if not comments_container:
+            break
 
         for comment in comments_container.find_all('div', class_='content'):
             new_comment = save_comment(comment, page_url, page_number)
@@ -50,7 +61,7 @@ def start():
     #url = "https://www.moddb.com/mods/freelancer-hd-edition/downloads/freelancer-hd-edition-v06"
 
     try:
-        url = "https://www.moddb.com/mods/freelancer-hd-edition"
+        url = "https://www.moddb.com/mods/freelancer-hd-edition/downloads/freelancer-hd-edition-v06"
         find_comments_in_page(comments, url)
         
     except Exception as e:
