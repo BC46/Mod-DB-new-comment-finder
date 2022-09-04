@@ -1,4 +1,5 @@
 # TODO:
+# Multiple paragraphs inside div.comment
 # Store all comments
 # Go to all pages
 # Paginate to other pages in same page utnil span.current is not equal to current page anymore
@@ -33,43 +34,54 @@ class Comment:
 
 
 def start():
-    recent_comments = []
+    comments = []
 
-    url = "https://www.moddb.com/mods/freelancer-hd-edition"
     #url = "https://www.moddb.com/mods/freelancer-hd-edition/downloads/freelancer-hd-edition-v06"
 
     try:
-        page = requests.get(url)
+        url = "https://www.moddb.com/mods/freelancer-hd-edition"
 
-        soup = BeautifulSoup(page.content, "html.parser")
+        page_number = 1
+        
+        while True:
+            page = requests.get(url + "/page/" + str(page_number))
 
-        comments_container = soup.find('div', class_='table tablecomments')
-
-        for comment in comments_container.find_all('div', class_='content'):
-            author = comment.find('a', class_='author').text
-            content = comment.find('p').text.strip()
+            soup = BeautifulSoup(page.content, "html.parser")
             
-            time_element = comment.find('time')
-            
-            date_time = time_element['datetime']
-            date_time = date_time[:len(date_time) - 6]
-
-            date_time_obj = datetime.datetime.strptime(date_time, '%Y-%m-%dT%H:%M:%S')
-            
-            # TODO: It's possible that this doesn't work (no pages)
-            page_number = int(soup.find('span', class_='current').text)
-            
-            new_comment = Comment(author, content, date_time_obj, time_element.text, url, page_number)
-            
-            if new_comment.is_recent():
-                comments.append(new_comment)
-            
-            print(new_comment)
             print(page_number)
-            print(time_element.text)
-            print(new_comment.is_recent())
-    except:
-        print(f"Could not retrieve comments from {url}")
+            actual_page_number = int(soup.find('span', class_='current').text)
+            
+            if page_number > actual_page_number:
+                break
+
+            comments_container = soup.find('div', class_='table tablecomments')
+
+            for comment in comments_container.find_all('div', class_='content'):
+                author = comment.find('a', class_='author').text
+                content = comment.find('p').text.strip()
+                
+                time_element = comment.find('time')
+                
+                date_time = time_element['datetime']
+                
+                if len(date_time) == 10:
+                    date_time_obj = datetime.datetime.strptime(date_time, '%Y-%m-%d')
+                else:
+                    date_time = date_time[:len(date_time) - 6]
+                    date_time_obj = datetime.datetime.strptime(date_time, '%Y-%m-%dT%H:%M:%S')
+                
+                new_comment = Comment(author, content, date_time_obj, time_element.text, url, page_number)
+                
+                if new_comment.is_recent():
+                    comments.append(new_comment)
+                
+                print(new_comment)
+                print(time_element.text)
+                print(new_comment.is_recent())
+                
+            page_number += 1
+    except Exception as e:
+        print(f"Could not retrieve comments from {url}: {str(e)}")
     
 
 
