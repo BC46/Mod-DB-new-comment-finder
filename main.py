@@ -29,7 +29,7 @@ class Comment:
         time_diff_min = round((datetime.datetime.utcnow() - self.date_time).total_seconds() / 60.0)
         minute_word = "minute" + ("" if time_diff_min == 1 else "s")
         
-        return f"New comment from {self.author} posted {time_diff_min} {minute_word} ago:\n\n" + self.content + f"\n\nReply here: {self.page_url}/page/{self.page_number}"
+        return f"New comment from {self.author} posted {time_diff_min} {minute_word} ago:\n\n" + self.content + f"\n\nReply here: {self.page_url}/page/{self.page_number}#comments"
 
 
 def start():
@@ -37,35 +37,40 @@ def start():
 
     url = "https://www.moddb.com/mods/freelancer-hd-edition"
     #url = "https://www.moddb.com/mods/freelancer-hd-edition/downloads/freelancer-hd-edition-v06"
-    page = requests.get(url)
 
-    soup = BeautifulSoup(page.content, "html.parser")
+    try:
+        page = requests.get(url)
 
-    comments_container = soup.find('div', class_='table tablecomments')
+        soup = BeautifulSoup(page.content, "html.parser")
 
-    for comment in comments_container.find_all('div', class_='content'):
-        author = comment.find('a', class_='author').text
-        content = comment.find('p').text.strip()
-        
-        time_element = comment.find('time')
-        
-        date_time = time_element['datetime']
-        date_time = date_time[:len(date_time) - 6]
+        comments_container = soup.find('div', class_='table tablecomments')
 
-        date_time_obj = datetime.datetime.strptime(date_time, '%Y-%m-%dT%H:%M:%S')
-        
-        # TODO: It's possible that this doesn't work (no pages)
-        page_number = int(soup.find('span', class_='current').text)
-        
-        new_comment = Comment(author, content, date_time_obj, time_element.text, url, page_number)
-        
-        if new_comment.is_recent():
-            comments.append(new_comment)
-        
-        print(new_comment)
-        print(page_number)
-        print(time_element.text)
-        print(new_comment.is_recent())
+        for comment in comments_container.find_all('div', class_='content'):
+            author = comment.find('a', class_='author').text
+            content = comment.find('p').text.strip()
+            
+            time_element = comment.find('time')
+            
+            date_time = time_element['datetime']
+            date_time = date_time[:len(date_time) - 6]
+
+            date_time_obj = datetime.datetime.strptime(date_time, '%Y-%m-%dT%H:%M:%S')
+            
+            # TODO: It's possible that this doesn't work (no pages)
+            page_number = int(soup.find('span', class_='current').text)
+            
+            new_comment = Comment(author, content, date_time_obj, time_element.text, url, page_number)
+            
+            if new_comment.is_recent():
+                comments.append(new_comment)
+            
+            print(new_comment)
+            print(page_number)
+            print(time_element.text)
+            print(new_comment.is_recent())
+    except:
+        print(f"Could not retrieve comments from {url}")
+    
 
 
 if __name__ == "__main__":
