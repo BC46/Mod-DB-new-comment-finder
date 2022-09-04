@@ -1,4 +1,5 @@
 import re
+import datetime
 
 class Comment:
     recent_post_regex = re.compile('^\d+ ?(secs?|mins?) ago$')

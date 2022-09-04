@@ -2,7 +2,6 @@
 # Use sessions https://python.plainenglish.io/send-http-requests-as-fast-as-possible-in-python-304134d46604
 # Remove print statements
 # Resolve in-code todos
-# Go to all pages
 # Perform task every 45 minutes
 
 import requests
@@ -58,16 +57,22 @@ def start():
     comments = []
     previous_comments = []
 
-    #url = "https://www.moddb.com/mods/freelancer-hd-edition/downloads/freelancer-hd-edition-v06"
+    urls = [
+        "https://www.moddb.com/mods/freelancer-hd-edition/downloads/freelancer-hd-edition-v06",
+        "https://www.moddb.com/mods/freelancer-hd-edition/downloads/freelancer-hd-edition-05"
+    ]
 
     try:
-        url = "https://www.moddb.com/mods/freelancer-hd-edition/downloads/freelancer-hd-edition-v06"
-        find_comments_in_page(comments, url)
-        
+        for url in urls:
+            find_comments_in_page(comments, url)
     except Exception as e:
         print(f"Could not retrieve comments from {url}: {str(e)}")
-        
-    print(len(comments))
+    
+    for comment in comments:
+        if not helpers.has_comment_already_been_saved(previous_comments, comment):
+            print(comment)
+    
+    previous_comments = comments
     
 
 
