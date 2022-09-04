@@ -1,42 +1,15 @@
 # TODO:
-# Use sessions
+# Use sessions https://python.plainenglish.io/send-http-requests-as-fast-as-possible-in-python-304134d46604
 # Cleanup
+# Remove print statements
 # Go to all pages
-# Paginate to other pages in same page utnil span.current is not equal to current page anymore
+# Perform task every 45 minutes
 
 import requests
 from bs4 import BeautifulSoup
-import datetime
-import re
 
-class Comment:
-    recent_post_regex = re.compile('^\d+ ?(secs?|mins?) ago$')
-
-    def __init__(self, author, content, date_time, date_time_text, page_url, page_number):
-        self.author = author
-        self.content = content
-        self.date_time = date_time
-        self.date_time_text = date_time_text
-        self.page_url = page_url
-        self.page_number = page_number
-        
-    def is_recent(self):
-        return bool(self.recent_post_regex.match(self.date_time_text))
-        
-    def __eq__(self, other):
-        return self.author == other.author and self.content == other.content and self.date_time == other.date_time and self.page_url == other.page_url
-        
-    def __str__(self):
-        time_diff_min = round((datetime.datetime.utcnow() - self.date_time).total_seconds() / 60.0)
-        minute_word = "minute" + ("" if time_diff_min == 1 else "s")
-        
-        return f"New comment from {self.author} posted {time_diff_min} {minute_word} ago:\n\n" + self.content + f"Reply here: {self.page_url}/page/{self.page_number}#comments"
-
-def has_comment_already_been_saved(saved_comments, comment):
-    for saved_comment in saved_comments:
-        if saved_comment == comment:
-            return True
-    return False
+from comment import Comment
+import helpers
 
 def start():
     comments = []
@@ -63,24 +36,13 @@ def start():
 
             for comment in comments_container.find_all('div', class_='content'):
                 author = comment.find('a', class_='author').text
-                
-                content = ''
-                for paragraph in comment.find_all('p'):
-                    content += paragraph.text.strip() + '\n\n'
-                
+                content = helpers.get_content_from_comment(comment)
                 time_element = comment.find('time')
-                
-                date_time = time_element['datetime']
-                
-                if len(date_time) == 10:
-                    date_time_obj = datetime.datetime.strptime(date_time, '%Y-%m-%d')
-                else:
-                    date_time = date_time[:len(date_time) - 6]
-                    date_time_obj = datetime.datetime.strptime(date_time, '%Y-%m-%dT%H:%M:%S')
+                date_time_obj = helpers.get_date_time_obj(time_element['datetime'])
                 
                 new_comment = Comment(author, content, date_time_obj, time_element.text, url, page_number)
                 
-                if True and not has_comment_already_been_saved(comments, new_comment):
+                if True and not helpers.has_comment_already_been_saved(comments, new_comment):
                     comments.append(new_comment)
                 
                 print(new_comment.is_recent())
