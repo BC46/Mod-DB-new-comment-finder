@@ -22,4 +22,4 @@ class Comment:
         time_diff_min = round((datetime.datetime.utcnow() - self.date_time).total_seconds() / 60.0)
         minute_word = "minute" + ("" if time_diff_min == 1 else "s")
         
-        return f"New comment from {self.author} posted {time_diff_min} {minute_word} ago:\n\n" + self.content + f"Reply here: {self.page_url}/page/{self.page_number}#comments"
+        return f"New comment from {self.author} posted {time_diff_min} {minute_word} ago:\n\n" + self.content + f"View/reply here: {self.page_url}/page/{self.page_number}#comments"
