@@ -1,5 +1,4 @@
 # TODO:
-# Multiple paragraphs inside div.comment
 # Store all comments
 # Go to all pages
 # Paginate to other pages in same page utnil span.current is not equal to current page anymore
@@ -30,7 +29,7 @@ class Comment:
         time_diff_min = round((datetime.datetime.utcnow() - self.date_time).total_seconds() / 60.0)
         minute_word = "minute" + ("" if time_diff_min == 1 else "s")
         
-        return f"New comment from {self.author} posted {time_diff_min} {minute_word} ago:\n\n" + self.content + f"\n\nReply here: {self.page_url}/page/{self.page_number}#comments"
+        return f"New comment from {self.author} posted {time_diff_min} {minute_word} ago:\n\n" + self.content + f"Reply here: {self.page_url}/page/{self.page_number}#comments"
 
 
 def start():
@@ -58,7 +57,10 @@ def start():
 
             for comment in comments_container.find_all('div', class_='content'):
                 author = comment.find('a', class_='author').text
-                content = comment.find('p').text.strip()
+                
+                content = ''
+                for paragraph in comment.find_all('p'):
+                    content += paragraph.text.strip() + '\n\n'
                 
                 time_element = comment.find('time')
                 
