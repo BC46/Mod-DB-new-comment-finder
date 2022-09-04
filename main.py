@@ -1,5 +1,6 @@
 # TODO:
-# Store all comments
+# Use sessions
+# Cleanup
 # Go to all pages
 # Paginate to other pages in same page utnil span.current is not equal to current page anymore
 
@@ -22,7 +23,7 @@ class Comment:
     def is_recent(self):
         return bool(self.recent_post_regex.match(self.date_time_text))
         
-    def equals(self, other):
+    def __eq__(self, other):
         return self.author == other.author and self.content == other.content and self.date_time == other.date_time and self.page_url == other.page_url
         
     def __str__(self):
@@ -31,6 +32,11 @@ class Comment:
         
         return f"New comment from {self.author} posted {time_diff_min} {minute_word} ago:\n\n" + self.content + f"Reply here: {self.page_url}/page/{self.page_number}#comments"
 
+def has_comment_already_been_saved(saved_comments, comment):
+    for saved_comment in saved_comments:
+        if saved_comment == comment:
+            return True
+    return False
 
 def start():
     comments = []
@@ -74,16 +80,16 @@ def start():
                 
                 new_comment = Comment(author, content, date_time_obj, time_element.text, url, page_number)
                 
-                if new_comment.is_recent():
+                if True and not has_comment_already_been_saved(comments, new_comment):
                     comments.append(new_comment)
                 
-                print(new_comment)
-                print(time_element.text)
                 print(new_comment.is_recent())
                 
             page_number += 1
     except Exception as e:
         print(f"Could not retrieve comments from {url}: {str(e)}")
+        
+    print(len(comments))
     
 
 
