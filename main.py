@@ -1,7 +1,5 @@
-# TODO:
-# Use sessions https://python.plainenglish.io/send-http-requests-as-fast-as-possible-in-python-304134d46604
-
 import requests
+from requests.sessions import Session
 from bs4 import BeautifulSoup
 import time
 
@@ -16,13 +14,13 @@ def save_comment(comment_element, page_url, page_number):
     
     return Comment(author, content, date_time_obj, time_element.text, page_url, page_number)
 
-def find_comments_in_page(comments, page_url):
+
+def find_comments_in_page(comments, page_url, session):
     page_number = 1
     
     on_last_page = False
     while not on_last_page:
         page = requests.get(page_url + "/page/" + str(page_number))
-        print(page_url + "/page/" + str(page_number))
         soup = BeautifulSoup(page.content, "html.parser")
         
         current_page_element = soup.find('span', class_='current')
@@ -49,6 +47,7 @@ def find_comments_in_page(comments, page_url):
             
         page_number += 1
 
+
 def start():
     comments = []
     previous_comments = []
@@ -74,26 +73,27 @@ def start():
     start_time = time.time()
     delay_seconds = float(50 * 60)
     
-    while True:
-        try:
-            for url in urls:
-                find_comments_in_page(comments, url)
-        except Exception as e:
-            print(f"Could not retrieve comments from {url}: {str(e)}")
-        
-        for comment in comments:
-            # Only print comments that haven't been printed the previous time. This prevents comments from being printed twice.
-            if not helpers.has_comment_already_been_saved(previous_comments, comment):
-                print(comment)
-        
-        # Reset comments
-        previous_comments = []
-        previous_comments.extend(comments)
-        comments = []
-        
-        time.sleep(delay_seconds - ((time.time() - start_time) % delay_seconds))
+    with requests.Session() as session:
+        while True:
+            try:
+                for url in urls:
+                    find_comments_in_page(comments, url, session)
+            except Exception as e:
+                print(f"Could not retrieve comments from {url}: {str(e)}")
+            
+            for comment in comments:
+                # Only print comments that haven't been printed the previous time. This prevents comments from being printed twice.
+                if not helpers.has_comment_already_been_saved(previous_comments, comment):
+                    print(comment)
+            
+            # Reset comments
+            previous_comments = []
+            previous_comments.extend(comments)
+            comments = []
+            
+            time.sleep(delay_seconds - ((time.time() - start_time) % delay_seconds))
     
-
 
 if __name__ == "__main__":
     start()
+    
