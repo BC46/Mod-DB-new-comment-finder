@@ -20,7 +20,7 @@ def find_comments_in_page(comments, page_url, session):
     
     on_last_page = False
     while not on_last_page:
-        page = requests.get(page_url + "/page/" + str(page_number))
+        page = session.get(page_url + "/page/" + str(page_number))
         soup = BeautifulSoup(page.content, "html.parser")
         
         current_page_element = soup.find('span', class_='current')
@@ -92,8 +92,7 @@ def start():
             comments = []
             
             time.sleep(delay_seconds - ((time.time() - start_time) % delay_seconds))
-    
+
 
 if __name__ == "__main__":
     start()
-    
