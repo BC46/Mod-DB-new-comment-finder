@@ -72,26 +72,27 @@ def start():
     
     start_time = time.time()
     delay_seconds = float(50 * 60)
+
+    while True:
+        session = requests.Session()
     
-    with requests.Session() as session:
-        while True:
-            try:
-                for url in urls:
-                    find_comments_in_page(comments, url, session)
-            except Exception as e:
-                print(f"Could not retrieve comments from {url}: {str(e)}")
-            
-            for comment in comments:
-                # Only print comments that haven't been printed the previous time. This prevents comments from being printed twice.
-                if not helpers.has_comment_already_been_saved(previous_comments, comment):
-                    print(comment)
-            
-            # Reset comments
-            previous_comments = []
-            previous_comments.extend(comments)
-            comments = []
-            
-            time.sleep(delay_seconds - ((time.time() - start_time) % delay_seconds))
+        try:
+            for url in urls:
+                find_comments_in_page(comments, url, session)
+        except Exception as e:
+            print(f"Could not retrieve comments from {url}: {str(e)}")
+        
+        for comment in comments:
+            # Only print comments that haven't been printed the previous time. This prevents comments from being printed twice.
+            if not helpers.has_comment_already_been_saved(previous_comments, comment):
+                print(comment)
+        
+        # Reset comments
+        previous_comments = []
+        previous_comments.extend(comments)
+        comments = []
+        
+        time.sleep(delay_seconds - ((time.time() - start_time) % delay_seconds))
 
 
 if __name__ == "__main__":
